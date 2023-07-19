@@ -3,12 +3,25 @@ import FetchWrapper from "./fetch-wrapper.js";
 import { capitalize, calculateCalories } from "./helpers.js";
 import snackbar from "snackbar";
 import AppData from "./app-data.js";
+import "chart.js";
 
 const API = new FetchWrapper(
   "https://firestore.googleapis.com/v1/projects/jsdemo-3f387/databases/(default)/documents/6283"
 );
 
+const appData = new AppData();
+
+const foodName = document.querySelector("#create-name");
+const carbs = document.querySelector("#create-carbs");
+const protein = document.querySelector("#create-protein");
+const fat = document.querySelector("#create-fat");
+const form = document.querySelector("#create-form");
+const list = document.querySelector("#food-list");
+const context = document.querySelector("#app-chart").getContext("2d");
+const calories = document.querySelector("#total-calories");
+
 const displayEntry = (name, carbs, protein, fat) => {
+  appData.addFood(carbs, protein, fat);
   return `<li class="card">
           <div>
             <h3 class="name">${capitalize(name)}</h3>
@@ -26,12 +39,40 @@ const displayEntry = (name, carbs, protein, fat) => {
         </li>`;
 };
 
-const foodName = document.querySelector("#create-name");
-const carbs = document.querySelector("#create-carbs");
-const protein = document.querySelector("#create-protein");
-const fat = document.querySelector("#create-fat");
-const form = document.querySelector("#create-form");
-const list = document.querySelector("#food-list");
+let chartInstance = null;
+
+const renderChart = () => {
+  chartInstance?.destroy();
+
+  chartInstance = new Chart(context, {
+    type: "bar",
+    data: {
+      labels: ["Carbs", "Protein", "Fat"],
+      datasets: [
+        {
+          label: ["Macronutrients"],
+          data: [
+            appData.getTotalCarbs(),
+            appData.getTotalProtein(),
+            appData.getTotalFat(),
+          ],
+          backgroundColor: ["#25AEEE", "#FECD52", "#57D269"],
+        },
+      ],
+    },
+    options: {
+      scales: {
+        yAxes: [
+          {
+            ticks: {
+              beginAtZero: true,
+            },
+          },
+        ],
+      },
+    },
+  });
+};
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -49,6 +90,9 @@ form.addEventListener("submit", (event) => {
         "beforeend",
         displayEntry(foodName.value, carbs.value, protein.value, fat.value)
       );
+
+      renderChart();
+      calories.textContent = appData.getTotalCalories();
 
       foodName.value = "";
       carbs.value = "";
@@ -77,6 +121,8 @@ const init = () => {
         )
       );
     });
+    renderChart();
+    calories.textContent = appData.getTotalCalories();
   });
 };
 
