@@ -7,6 +7,24 @@ const API = new FetchWrapper(
   "https://firestore.googleapis.com/v1/projects/jsdemo-3f387/databases/(default)/documents/6283"
 );
 
+const displayEntry = (name, carbs, protein, fat) => {
+  return `<li class="card">
+          <div>
+            <h3 class="name">${capitalize(name)}</h3>
+            <div class="calories">${calculateCalories(
+              carbs,
+              protein,
+              fat
+            )} calories</div>
+            <ul class="macros">
+              <li class="carbs"><div>Carbs</div><div class="value">${carbs}g</div></li>
+              <li class="protein"><div>Protein</div><div class="value">${protein}g</div></li>
+              <li class="fat"><div>Fat</div><div class="value">${fat}g</div></li>
+            </ul>
+          </div>
+        </li>`;
+};
+
 const foodName = document.querySelector("#create-name");
 const carbs = document.querySelector("#create-carbs");
 const protein = document.querySelector("#create-protein");
@@ -28,27 +46,7 @@ form.addEventListener("submit", (event) => {
     if (!data.error) {
       list.insertAdjacentHTML(
         "beforeend",
-        `<li class="card">
-          <div>
-            <h3 class="name">${capitalize(foodName.value)}</h3>
-            <div class="calories">${calculateCalories(
-              carbs.value,
-              protein.value,
-              fat.value
-            )} calories</div>
-            <ul class="macros">
-              <li class="carbs"><div>Carbs</div><div class="value">${
-                carbs.value
-              }g</div></li>
-              <li class="protein"><div>Protein</div><div class="value">${
-                protein.value
-              }g</div></li>
-              <li class="fat"><div>Fat</div><div class="value">${
-                fat.value
-              }g</div></li>
-            </ul>
-          </div>
-         </li>`
+        displayEntry(foodName.value, carbs.value, protein.value, fat.value)
       );
 
       foodName.value = "";
@@ -70,27 +68,12 @@ const init = () => {
     data.documents?.forEach((document) => {
       list.insertAdjacentHTML(
         "beforeend",
-        `<li class="card">
-        <div>
-          <h3 class="name">${capitalize(document.fields.name.stringValue)}</h3>
-          <div class="calories">${calculateCalories(
-            document.fields.carbs.integerValue,
-            document.fields.protein.integerValue,
-            document.fields.fat.integerValue
-          )} calories</div>
-          <ul class="macros">
-            <li class="carbs"><div>Carbs</div><div class="value">${
-              document.fields.carbs.integerValue
-            }g</div></li>
-            <li class="protein"><div>Protein</div><div class="value">${
-              document.fields.protein.integerValue
-            }g</div></li>
-            <li class="fat"><div>Fat</div><div class="value">${
-              document.fields.fat.integerValue
-            }g</div></li>
-          </ul>
-        </div>
-      </li>`
+        displayEntry(
+          document.fields.name.stringValue,
+          document.fields.carbs.integerValue,
+          document.fields.protein.integerValue,
+          document.fields.fat.integerValue
+        )
       );
     });
   });
